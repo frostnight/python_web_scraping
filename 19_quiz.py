@@ -21,6 +21,24 @@ inputKeyword.send_keys(keyword)
 inputKeyword.send_keys(Keys.ENTER)
 
 soup = BeautifulSoup(browser.page_source, "lxml")
-trades= soup.find("div", attrs={"class":["wrap_tbl", "tbl_trade"]}).find("tbody").find_all("tr")
+tradeTable = soup.find("div", attrs={"class":["wrap_tbl", "tbl_trade"]})
+titles = tradeTable.find("thead").find_all("th")
+trades = tradeTable.find("tbody").find_all("tr")
 
-print("trades", trades)
+for idx, trade in enumerate(trades):
+
+    tradeType = trade.find("td", attrs={"class":"col1"}).find("div", attrs={"class":"txt_ac"}).get_text()
+    area = trade.find("td", attrs={"class":"col2"}).find("div", attrs={"class":"txt_ac"}).get_text()
+    price = trade.find("td", attrs={"class":"col3"}).find("div", attrs={"class":"txt_ac"}).get_text()
+    aptComplex = trade.find("td", attrs={"class":"col4"}).find("div", attrs={"class":"txt_ac"}).get_text()
+    floor = trade.find("td", attrs={"class":"col5"}).find("div", attrs={"class":"txt_ac"}).get_text()
+
+    print(f"======== 매물 {idx} =========")
+    print(f"{titles[0].get_text()} : {tradeType}")
+    print(f"{titles[1].get_text()} : {area}")
+    print(f"{titles[2].get_text()} : {price}")
+    print(f"{titles[3].get_text()} : {aptComplex}")
+    print(f"{titles[4].get_text()} : {floor}")
+
+
+

@@ -1,3 +1,5 @@
+import re
+
 import requests
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString
@@ -9,6 +11,10 @@ def create_soup(url):
     res.raise_for_status()
     soup = BeautifulSoup(res.text, "lxml")
     return soup
+
+def print_news(index, title, link):
+    print(f"{index+1}. {title}")
+    print(f" ( 링크 : {link} )")
 
 def scrape_weather():
     print("[오늘의 날씨]")
@@ -44,8 +50,6 @@ def scrape_weather():
     print("오전 강수확률 {} / 오후 강수확률{}".format(morning_rain_rate, afternoon_rain_rate))
     print("미세먼지 {} / 초미세먼지 {} / 자외선 {}".format(dust, hyper_dust, ultraviolet))
 
-
-
 def scrape_headline_news():
     print("[헤드라인 뉴스]")
     url = "https://news.naver.com"
@@ -54,11 +58,41 @@ def scrape_headline_news():
     for index, news in enumerate(news_list):
         title = news.find("a").get_text().strip()
         link = url+news.find("a")["href"]
-        print(f"{index+1}. {title}")
-        print(f" ( 링크 : {link}")
+        print_news(index, title, link)
     print()
 
+def scrape_it_news():
+    print("[IT 뉴스]")
+    url = "https://news.naver.com/main/list.naver?mode=LS2D&mid=shm&sid1=105&sid2=230"
+    soup = create_soup(url)
+    news_list = soup.find("ul", attrs={"class":"type06_headline"}).find_all("li", limit=3) # 개까지
+    for index, news in enumerate(news_list):
+        img = news.find("a").img
+        if img:
+            title = img["alt"]
+        else:
+            title = news.find("a").get_text().strip()
+        link = news.find("a")["href"]
+        print_news(index, title, link)
+    print()
+
+def scrape_english():
+    print("[오늘의 영어 회화]")
+    url = "https://www.hackers.co.kr/?c=s_eng/eng_contents/I_others_english&keywd=haceng_submain_lnb_eng_I_others_english&logger_kw=haceng_submain_lnb_eng_I_others_english#;"
+    soup = create_soup(url)
+    sentences = soup.find_all("div", attrs={"id":re.compile("^conv_kor_t")})
+    print("(영어 지문)")
+    for sentence in sentences[len(sentences)//2:]: # 8문장이 있다고 가정할 때, index 기준 4~7까지 잘라서 가져옴
+        print(sentence.span.b.get_text().strip())
+
+    print("(한글 지문)")
+    for sentence in sentences[0:len(sentences)//2]: # 8문장이 있다고 가정할 때, index 기준 0~3까지 잘라서 가져옴
+        print(sentence.span.b.get_text().strip())
+
+    print()
 
 if __name__ == "__main__":
     #scrape_weather() # 오늘의 날씨 정보 가져오기
-    scrape_headline_news()
+    #scrape_headline_news() # 헤드라인 뉴스 정보 가져오기
+    #scrape_it_news() # IT 뉴스 정보 가져오기
+    scrape_english() # 오늘의 영어 회화 가져오기

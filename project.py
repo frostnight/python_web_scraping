@@ -1,14 +1,19 @@
 import requests
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString
-# [오늘의 날씨]
+
+
+def create_soup(url):
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36"}
+    res = requests.get(url, headers=headers)
+    res.raise_for_status()
+    soup = BeautifulSoup(res.text, "lxml")
+    return soup
 
 def scrape_weather():
     print("[오늘의 날씨]")
     url = "https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=0&ie=utf8&query=%EC%84%9C%EC%9A%B8+%EB%82%A0%EC%94%A8"
-    res = requests.get(url)
-    res.raise_for_status()
-    soup = BeautifulSoup(res.text, "lxml")
+    soup = create_soup(url)
     # 흐림, 어제보다 00º 높아요
     cast = soup.find("p", attrs={"class":"summary"}).get_text()
     # 현재 00ºC (최저 00º / 최고 00º)
@@ -39,5 +44,21 @@ def scrape_weather():
     print("오전 강수확률 {} / 오후 강수확률{}".format(morning_rain_rate, afternoon_rain_rate))
     print("미세먼지 {} / 초미세먼지 {} / 자외선 {}".format(dust, hyper_dust, ultraviolet))
 
+
+
+def scrape_headline_news():
+    print("[헤드라인 뉴스]")
+    url = "https://news.naver.com"
+    soup = create_soup(url)
+    news_list = soup.find("ul", attrs={"class":"hdline_article_list"}).find_all("li", limit=3)
+    for index, news in enumerate(news_list):
+        title = news.find("a").get_text().strip()
+        link = url+news.find("a")["href"]
+        print(f"{index+1}. {title}")
+        print(f" ( 링크 : {link}")
+    print()
+
+
 if __name__ == "__main__":
-    scrape_weather() # 오늘의 날씨 정보 가져오기
+    #scrape_weather() # 오늘의 날씨 정보 가져오기
+    scrape_headline_news()
